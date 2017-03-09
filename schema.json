@@ -1,0 +1,20 @@
+{
+	"servers": {
+		"test": {
+			"metadata": {
+				"password_protected": true,
+				"password_hash": "2cee3c63210829f3e9d3768dbe4c4d12ad784b31",
+				"seed": "274836293"
+			},
+			"storage": {
+				"custom_locations": ["UNC", "The Bro Room"]
+			},
+			"session": {
+				"players": ["Nikhil", "Jesse", "Tailong"],
+				"spy": "Tailong",
+				"location": "Beach",
+				"expiry": 1488937158
+			}
+		}
+	}
+}
