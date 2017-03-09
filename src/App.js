@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
-import {browserHistory} from 'react-router';
+import {hashHistory} from 'react-router';
 import {Form, Container, Segment} from 'semantic-ui-react';
 
 class App extends Component {
@@ -11,7 +11,7 @@ class App extends Component {
   }
 
   joinGame() {
-    browserHistory.push('/game/' + this.state.serverName + '?username=' + this.state.username);
+    hashHistory.push('/game/' + this.state.serverName + '?username=' + this.state.username);
   }
 
 

@@ -56,7 +56,7 @@ class Game extends Component {
       customLocations: [],
       newLocationValue: "",
       gameLength: 5,
-      expiry: 0,
+      expiry: 99999999999999999,
       spy: "",
       location: "",
       timeRemaining: "0:00",
@@ -119,7 +119,8 @@ class Game extends Component {
     });
     this.dbSession.on('value', function(snapshot) {
       var val = snapshot.val();
-      that.setState({isSpy: that.state.uid == val.spy, expiry: val.expiry, location: val.location, lobby: (val.expiry - (new Date().valueOf()) < 0)});
+      var expiry = (!val.expiry) ? 0 : val.expiry;
+      that.setState({isSpy: that.state.uid == val.spy, expiry: expiry, location: val.location, lobby: (expiry - (new Date().valueOf()) < 0)});
     });
     this.dbLocations.on('value', function(snapshot) {
       var val = snapshot.val();
