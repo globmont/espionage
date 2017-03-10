@@ -225,7 +225,11 @@ class Game extends Component {
                 <Dropdown labeled placeholder='Select game length' value={this.state.gameLength} onChange={(event, data) => {this.setGameLength(data.value)}} selection options={times} />
               </Segment>
               <Segment>
-                <Button positive onClick={this.startGame.bind(this)}>Start game</Button>
+                <Button.Group>
+                  <Button negative onClick={() => this.dbPlayers.remove()}>Refresh players</Button>
+                  <Button.Or />
+                  <Button positive onClick={this.startGame.bind(this)}>Start game</Button>
+                </Button.Group>
               </Segment>
             </Segment.Group>
         	}
