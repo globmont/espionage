@@ -3,15 +3,20 @@ import './App.css';
 import firebase from 'firebase';
 import randomstring from 'randomstring'
 import _ from 'underscore';
-import {Container, List, Segment, Input, Button, Header, Dropdown, Icon} from 'semantic-ui-react';
+import {Container, List, Segment, Input, Button, Header, Dropdown, Icon, Popup} from 'semantic-ui-react';
 
 
 var userKey = "";
 var serverName = "";
-window.addEventListener('beforeunload', function() {
+
+var removeUser = function() {
     // remove player from active players list
     firebase.database().ref('/servers/' + serverName + '/session/players').child(userKey).remove();
-});
+}
+
+window.addEventListener('beforeunload', removeUser);
+window.addEventListener('onunload', removeUser);
+window.addEventListener('onbeforeunload', removeUser);
 
 const times = [
   {
@@ -81,12 +86,9 @@ class Game extends Component {
     this.dbSession = firebase.database().ref('/servers/' + this.props.params.serverName.toLowerCase() + '/session');
     this.dbLocations = firebase.database().ref('/locations');
 
-    // add player to list of active players
-    var player = {}
-    player[this.state.uid] = this.props.location.query.username;
-    this.dbPlayers.update(player);
 
-    // handle timer
+
+    // handle timer and user registration
     setInterval(function() {
       var diff = this.state.expiry - ((new Date()).valueOf());
       diff /= 1000;
@@ -94,6 +96,14 @@ class Game extends Component {
       var minutes = Math.floor(diff / 60);
       var seconds = Math.floor(diff % 60);
       this.setState({timeRemaining: minutes + ":" + ((seconds < 10) ? "0" : "") + seconds})
+
+      if(_.where(this.state.players, {key: this.state.uid}).length == 0) {
+        var player = {}
+        player[this.state.uid] = this.props.location.query.username;
+        this.dbPlayers.update(player);
+      }
+      // add player to list of active players
+
     }.bind(this), 1000);
 
     // handle db changes
@@ -108,8 +118,10 @@ class Game extends Component {
     this.dbCustomLocations.on('value', function(snapshot) {
       var val = snapshot.val();
       var customLocations = []
-      for(var i = 0; i < val.length; i++) {
-        customLocations.push({header: val[i], key: val[i]})
+      for(var key in val) {
+        if(val[key]) {
+          customLocations.push({header: key, key: key, enabled: true})
+        }
       }
       that.setState({customLocations: customLocations});
     });
@@ -129,13 +141,17 @@ class Game extends Component {
 	}
 
   addCustomLocation() {
-    var newLocations = [];
+    var newLocations = {};
     for(var i = 0; i < this.state.customLocations.length; i++)  {
-      newLocations.push(this.state.customLocations[i].header)
+      newLocations[this.state.customLocations[i].header] = true;
     }
-    newLocations.push(this.state.newLocationValue)
+    newLocations[this.state.newLocationValue] = true;
     this.dbCustomLocations.set(newLocations)
     this.setState({newLocationValue: ""})
+  }
+
+  removeCustomLocationsdfasdf(location) {
+    console.log("removing " + location)
   }
 
   setGameLength(val) {
@@ -165,6 +181,7 @@ class Game extends Component {
 
   endGame() {
     this.setState({lobby: true});
+    this.dbPlayers.remove();
     this.dbSession.update({expiry: new Date().valueOf() - 1000});
   }
 
@@ -195,7 +212,10 @@ class Game extends Component {
 		          	<Segment attached>
 			          	<h3 className="subtitle">Custom Locations</h3>
                   <Segment color="blue">
-  			          	<List divided relaxed items={this.state.customLocations} />
+                    {/*<List divided relaxed items={this.state.customLocations} />*/}
+                    <List divided relaxed>
+                        {this.state.customLocations.map((loc)=> loc.enabled && <List.Item active={false} key={loc.key}><Popup on='click' position='top center' trigger={<p>{loc.header}</p>} content={<Button onClick={()=>this.dbCustomLocations.child(loc.key).remove()} negative>Remove</Button>} /></List.Item>)}
+                    </List>
                     <Input action={<Button icon="add" onClick={this.addCustomLocation.bind(this)} color="blue" />} value={this.state.newLocationValue} onChange={(event, data) => {this.setState({newLocationValue: data.value})}} placeholder='Add a location...' />
                   </Segment>
 						    </Segment>
