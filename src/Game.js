@@ -226,7 +226,7 @@ class Game extends Component {
               </Segment>
               <Segment>
                 <Button.Group>
-                  <Button negative onClick={() => this.dbPlayers.remove()}>Refresh players</Button>
+                  <Button color="blue" onClick={() => this.dbPlayers.remove()}>Refresh players</Button>
                   <Button.Or />
                   <Button positive onClick={this.startGame.bind(this)}>Start game</Button>
                 </Button.Group>
