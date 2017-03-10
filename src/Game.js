@@ -3,7 +3,7 @@ import './App.css';
 import firebase from 'firebase';
 import randomstring from 'randomstring'
 import _ from 'underscore';
-import {Container, List, Segment, Input, Button, Header, Dropdown, Icon, Popup} from 'semantic-ui-react';
+import {Container, List, Segment, Input, Button, Header, Dropdown, Icon, Popup, Label} from 'semantic-ui-react';
 
 
 var userKey = "";
@@ -206,7 +206,11 @@ class Game extends Component {
 		        		<Segment attached>
 		        			<h3 className="subtitle">Players</h3>
                   <Segment color="red">
-                    <List divided relaxed items={this.state.players} />
+                    <List divided relaxed>
+                      {
+                        this.state.players.map((player)=><List.Item key={player.key}><List.Header>{(player.key === this.state.uid) && <Label style={{position: "absolute", left: 20}}attached circular size="mini" color="red">Me</Label>}{player.header}</List.Header></List.Item>)
+                      }
+                    </List>
                   </Segment>
 		          	</Segment>
 		          	<Segment attached>
@@ -214,9 +218,9 @@ class Game extends Component {
                   <Segment color="blue">
                     {/*<List divided relaxed items={this.state.customLocations} />*/}
                     <List divided relaxed>
-                        {this.state.customLocations.map((loc)=> loc.enabled && <List.Item active={false} key={loc.key}><Popup on='click' position='top center' trigger={<p>{loc.header}</p>} content={<Button onClick={()=>this.dbCustomLocations.child(loc.key).remove()} negative>Remove</Button>} /></List.Item>)}
-                    </List>
-                    <Input action={<Button icon="add" onClick={this.addCustomLocation.bind(this)} color="blue" />} value={this.state.newLocationValue} onChange={(event, data) => {this.setState({newLocationValue: data.value})}} placeholder='Add a location...' />
+                        {this.state.customLocations.map((loc)=> loc.enabled && <List.Item key={loc.key}><Popup on='click' position='top center' trigger={<p>{loc.header}</p>} content={<Button onClick={()=>this.dbCustomLocations.child(loc.key).remove()} negative>Remove</Button>} /></List.Item>)}
+                  </List>
+                  <Input action={<Button icon="add" onClick={this.addCustomLocation.bind(this)} color="blue" />} value={this.state.newLocationValue} onChange={(event, data) => {this.setState({newLocationValue: data.value})}} placeholder='Add a location...' />
                   </Segment>
 						    </Segment>
 					    </Segment.Group>
