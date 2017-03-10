@@ -66,7 +66,8 @@ class Game extends Component {
       location: "",
       timeRemaining: "0:00",
       uid: "",
-      locations: []
+      locations: [],
+      allLocations: []
     };
 
     firebase.initializeApp({
@@ -117,13 +118,16 @@ class Game extends Component {
     });
     this.dbCustomLocations.on('value', function(snapshot) {
       var val = snapshot.val();
-      var customLocations = []
+      var customLocations = {}
       for(var key in val) {
         if(val[key]) {
-          customLocations.push({header: key, key: key, enabled: true})
+          customLocations[key] = {header: key, key: key, enabled: true, strike: false}
+
         }
       }
-      that.setState({customLocations: customLocations});
+
+      that.setState({allLocations: _.extend(that.state.allLocations, customLocations)})
+      that.setState({customLocations: Object.values(customLocations)});
     });
     this.dbGameLength.on('value', function(snapshot) {
       var val = snapshot.val();
@@ -136,7 +140,13 @@ class Game extends Component {
     });
     this.dbLocations.on('value', function(snapshot) {
       var val = snapshot.val();
-      that.setState({locations: val});
+      var locations = {};
+      for(var i = 0; i < val.length; i++) {
+        locations[val[i]] = {content: val[i], key: val[i], strike: false}
+      }
+
+      that.setState({allLocations: _.extend(that.state.allLocations, locations)})
+      that.setState({locations: Object.values(locations)});
     })
 	}
 
@@ -148,10 +158,6 @@ class Game extends Component {
     newLocations[this.state.newLocationValue] = true;
     this.dbCustomLocations.set(newLocations)
     this.setState({newLocationValue: ""})
-  }
-
-  removeCustomLocationsdfasdf(location) {
-    console.log("removing " + location)
   }
 
   setGameLength(val) {
@@ -208,7 +214,7 @@ class Game extends Component {
                   <Segment color="red">
                     <List divided relaxed>
                       {
-                        this.state.players.map((player)=><List.Item key={player.key}><List.Header>{(player.key === this.state.uid) && <Label style={{position: "absolute", left: 20}}attached circular size="mini" color="red">Me</Label>}{player.header}</List.Header></List.Item>)
+                        this.state.players.map((player)=><List.Item key={player.key}><List.Header>{(player.key === this.state.uid) && <Label style={{position: "absolute", left: 20}} circular size="mini" color="red">Me</Label>}{player.header}</List.Header></List.Item>)
                       }
                     </List>
                   </Segment>
@@ -249,7 +255,9 @@ class Game extends Component {
               </Segment>
               <Segment attached>
                 <h3 className="subtitle">Possible Locations</h3>
-                <List animated relaxed items={_.union(this.state.customLocations, this.state.locations)} />
+                <List relaxed>
+                  {Object.values(this.state.allLocations).map((loc)=><List.Item className={loc.strike && 'strikethrough'} key={loc.key} onClick={()=>console.log(loc.strike = !loc.strike)} content={loc} />)}
+                </List>
               </Segment>
               <Segment attached>
                 <h3 className="subtitle">Actions</h3>
