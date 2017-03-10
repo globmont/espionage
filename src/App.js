@@ -11,7 +11,7 @@ class App extends Component {
   }
 
   joinGame() {
-    hashHistory.push('/game/' + this.state.serverName + '?username=' + this.state.username);
+    hashHistory.push('/game/' + this.state.serverName.trim() + '?username=' + this.state.username);
   }
 
 
