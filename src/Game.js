@@ -3,7 +3,7 @@ import './App.css';
 import firebase from 'firebase';
 import randomstring from 'randomstring'
 import _ from 'underscore';
-import {Container, List, Segment, Input, Button, Header, Dropdown, Icon, Popup, Label} from 'semantic-ui-react';
+import {Container, List, Segment, Input, Button, Header, Dropdown, Icon, Popup, Label, Radio, Form} from 'semantic-ui-react';
 
 
 var userKey = "";
@@ -66,7 +66,8 @@ class Game extends Component {
       location: "",
       timeRemaining: "0:00",
       uid: "",
-      locations: []
+      locations: [],
+      defaultLocationsDisabled: false
     };
 
     firebase.initializeApp({
@@ -132,7 +133,7 @@ class Game extends Component {
     this.dbSession.on('value', function(snapshot) {
       var val = snapshot.val();
       var expiry = (!val.expiry) ? 0 : val.expiry;
-      that.setState({isSpy: that.state.uid == val.spy, expiry: expiry, location: val.location, lobby: (expiry - (new Date().valueOf()) < 0)});
+      that.setState({defaultLocationsDisabled: val.defaultLocationsDisabled, isSpy: that.state.uid == val.spy, expiry: expiry, location: val.location, lobby: (expiry - (new Date().valueOf()) < 0)});
     });
     this.dbLocations.on('value', function(snapshot) {
       var val = snapshot.val();
@@ -159,6 +160,13 @@ class Game extends Component {
     this.setState({gameLength: val})
   }
 
+  setDefaultLocationsDisabled(val) {
+    console.log('setting: ' + val);
+    this.setState({defaultLocationsDisabled: !this.state.defaultLocationsDisabled})
+    this.dbSession.child('defaultLocationsDisabled').set(!this.state.defaultLocationsDisabled);
+    console.log(!this.state.defaultLocationsDisabled);
+  }
+
   startGame() {
     var players = this.dbPlayers.once('value').then(function(snapshot) {
       var val = snapshot.val();
@@ -169,7 +177,7 @@ class Game extends Component {
       for(var i = 0; i < this.state.customLocations.length; i++) {
         customLocations.push(this.state.customLocations[i].header);
       }
-      var allLocations = _.union(customLocations, this.state.locations);
+      var allLocations = _.union(customLocations, !this.state.defaultLocationsDisabled && this.state.locations);
       var location = allLocations[Math.floor(Math.random() * ((allLocations.length - 1) - 0 + 1))];
 
       this.dbSession.update({location: location, spy: spyUid, expiry: new Date().valueOf() + this.state.gameLength * 60000});
@@ -226,7 +234,10 @@ class Game extends Component {
 					    </Segment.Group>
               <Segment>
                 <h3 className="subtitle">Server Settings</h3>
-                <Dropdown labeled placeholder='Select game length' value={this.state.gameLength} onChange={(event, data) => {this.setGameLength(data.value)}} selection options={times} />
+                <Form.Group>
+                  <Form.Dropdown labeled placeholder='Select game length' value={this.state.gameLength} onChange={(event, data) => {this.setGameLength(data.value)}} selection options={times} />
+                  <Form.Radio label="Default locations" onChange={(event, data)=>this.setDefaultLocationsDisabled(data.checked)} checked={!this.state.defaultLocationsDisabled} style={{marginTop: '2vh'}} toggle />
+                </Form.Group>
               </Segment>
               <Segment>
                 <Button.Group>
@@ -249,7 +260,7 @@ class Game extends Component {
               </Segment>
               <Segment attached>
                 <h3 className="subtitle">Possible Locations</h3>
-                <List animated relaxed items={_.union(this.state.customLocations, this.state.locations)} />
+                <List animated relaxed items={_.union(this.state.customLocations, !this.state.defaultLocationsDisabled && this.state.locations)} />
               </Segment>
               <Segment attached>
                 <h3 className="subtitle">Actions</h3>
